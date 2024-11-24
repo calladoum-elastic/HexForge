@@ -14,7 +14,7 @@ class SearchGoogle(helper.ModuleTemplate):
 
     def _action(self) -> None:
 
-        data = helper.get_highighted_string_from_decompiler()
+        data = helper.get_highlighted_string_from_decompiler()
         try:
             formatted_url = f"https://www.google.com/search?q={data}"
             ida_kernwin.open_url(formatted_url)
@@ -31,7 +31,7 @@ class SearchGitHub(helper.ModuleTemplate):
 
     def _action(self) -> None:
 
-        data = helper.get_highighted_string_from_decompiler()
+        data = helper.get_highlighted_string_from_decompiler()
         try:
             formatted_url = f"https://github.com/search?q={data}&type=code"
             ida_kernwin.open_url(formatted_url)
@@ -48,7 +48,7 @@ class SearchGrepApp(helper.ModuleTemplate):
 
     def _action(self) -> None:
 
-        data = helper.get_highighted_string_from_decompiler()
+        data = helper.get_highlighted_string_from_decompiler()
         try:
             formatted_url = f"https://grep.app/search?q={data}"
             ida_kernwin.open_url(formatted_url)
@@ -83,7 +83,7 @@ class SearchVirustotalString(helper.ModuleTemplate):
 
     def _action(self) -> None:
 
-        data = helper.get_highighted_string_from_decompiler()
+        data = helper.get_highlighted_string_from_decompiler()
         try:
             formatted_url = f"https://www.virustotal.com/gui/search/content%253A%2520{data}"
             ida_kernwin.open_url(formatted_url)

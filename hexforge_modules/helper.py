@@ -35,7 +35,7 @@ def write_bytes_to_selected(data) -> None:
         for i, x in enumerate(data):
             idaapi.patch_byte(start + i, x)
 
-def get_highighted_string_from_decompiler() -> str:
+def get_highlighted_string_from_decompiler() -> str:
     """
     Get the highlighted string from the decompiler view in IDA Pro.
 
