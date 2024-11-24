@@ -12,6 +12,9 @@ g_crypto_modules = [cls() for _, cls in inspect.getmembers(crypto, inspect.iscla
 g_encoding_modules = [cls() for _, cls in inspect.getmembers(encoding, inspect.isclass)]
 g_misc_modules = [cls() for _, cls in inspect.getmembers(misc, inspect.isclass)]
 
+ida_version = idaapi.get_kernel_version()
+is_ida_9_or_later = float(ida_version) >= 9.0
+
 
 class hexforge_plugin_t(idaapi.plugin_t):
     flags = idaapi.PLUGIN_KEEP
@@ -76,7 +79,12 @@ def inject_actions(form, popup, form_type) -> int:
     Inject actions to popup menu(s) based on context.
     """
 
-    if (form_type == idaapi.BWN_DISASMS) or (form_type == idaapi.BWN_DUMP):
+    if is_ida_9_or_later:
+        valid_form_types = (idaapi.BWN_DISASM, idaapi.BWN_HEXVIEW, idaapi.BWN_PSEUDOCODE)
+    else:
+        valid_form_types = (idaapi.BWN_DISASMS, idaapi.BWN_DUMP, idaapi.BWN_PSEUDOCODE)
+
+    if form_type in valid_form_types:
         for module in g_crypto_modules:
             idaapi.attach_action_to_popup(
                 form,
