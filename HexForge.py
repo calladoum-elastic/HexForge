@@ -1,16 +1,18 @@
 import idaapi
 import inspect
 
-from hexforge_modules import crypto, encoding, misc
-
+from hexforge_modules import crypto, encoding, misc, search
+from hexforge_modules.search import SearchVirustotalBytes, SearchVirustotalString, SearchGitHub, SearchGoogle, SearchGrepApp
 
 CRYPTO_MODULE_PATH = "HexForge/crypto/"
 ENCODING_MODULE_PATH = "HexForge/encoding/"
 MISC_MODULE_PATH = "HexForge/misc/"
+SEARCH_MODULE_PATH = "HexForge/search/"
 
 g_crypto_modules = [cls() for _, cls in inspect.getmembers(crypto, inspect.isclass)]
 g_encoding_modules = [cls() for _, cls in inspect.getmembers(encoding, inspect.isclass)]
 g_misc_modules = [cls() for _, cls in inspect.getmembers(misc, inspect.isclass)]
+g_search_modules = [cls() for _, cls in inspect.getmembers(search, inspect.isclass)]
 
 
 class hexforge_plugin_t(idaapi.plugin_t):
@@ -37,11 +39,11 @@ class hexforge_plugin_t(idaapi.plugin_t):
     # --------------------------------------------------------------------------
 
     def _init_actions(self) -> None:
-        for module in g_crypto_modules + g_encoding_modules + g_misc_modules:
+        for module in g_crypto_modules + g_encoding_modules + g_misc_modules + g_search_modules:
             module.init_action()
 
     def _del_action(self) -> None:
-        for module in g_crypto_modules + g_encoding_modules + g_misc_modules:
+        for module in g_crypto_modules + g_encoding_modules + g_misc_modules + g_search_modules:
             module.del_action()
 
     # --------------------------------------------------------------------------
@@ -76,7 +78,7 @@ def inject_actions(form, popup, form_type) -> int:
     Inject actions to popup menu(s) based on context.
     """
 
-    if (form_type == idaapi.BWN_DISASMS) or (form_type == idaapi.BWN_DUMP):
+    if (form_type == idaapi.BWN_DISASMS) or (form_type == idaapi.BWN_DUMP) or (form_type == idaapi.BWN_PSEUDOCODE):
         for module in g_crypto_modules:
             idaapi.attach_action_to_popup(
                 form,
@@ -101,6 +103,22 @@ def inject_actions(form, popup, form_type) -> int:
                 popup,
                 module.ACTION_NAME,
                 ENCODING_MODULE_PATH,
+                idaapi.SETMENU_APP,
+            )
+
+        for module in g_search_modules:
+            # Exclude byte searches in decompiler
+            if form_type == idaapi.BWN_PSEUDOCODE and isinstance(module, SearchVirustotalBytes):
+                continue
+
+            # Exclude string searches in disassembler
+            if form_type == idaapi.BWN_DISASMS and isinstance(module, (SearchGoogle, SearchGrepApp,SearchGitHub,SearchVirustotalString)):
+                continue
+            idaapi.attach_action_to_popup(
+                form,
+                popup,
+                module.ACTION_NAME,
+                SEARCH_MODULE_PATH,
                 idaapi.SETMENU_APP,
             )
 
