@@ -105,3 +105,66 @@ class CopyMemory(helper.ModuleTemplate):
         except (binascii.Error, UnicodeDecodeError) as e:
             print(e)
             return None
+
+class DumpMemory(helper.ModuleTemplate):
+    def __init__(self):
+        self.ACTION_NAME = "hexforge::dump_memory"
+        self.ACTION_TEXT = "dump_memory"
+        self.ACTION_TOOLTIP = "dump_memory"
+
+    # function to execute
+    def _action(self) -> None:
+        result = self._show()
+        if result:
+            start_addr, end_addr, filepath = result
+            self.dump_memory_to_file(start_addr, end_addr, filepath)
+
+    def _show(self):
+        f = self.InputFormT()
+        f, args = f.Compile()
+        # Show form
+        ok = f.Execute()
+        if ok == 1:
+            start_addr = int(f.start_addr.value, 16)
+            end_addr = int(f.end_addr.value, 16)
+            filepath = f.filepath.value
+            f.Free()
+            return start_addr, end_addr, filepath
+        else:
+            f.Free()
+            return None
+
+    def dump_memory_to_file(self, start_addr, end_addr, filepath):
+        size = end_addr - start_addr
+        data = idaapi.get_bytes(start_addr, size)
+        if data:
+            with open(filepath, 'wb') as f:
+                f.write(data)
+            print(f"Memory dumped to {filepath}")
+        else:
+            print("Failed to read memory")
+
+    class InputFormT(ida_kernwin.Form):
+        def __init__(self):
+            self.__n = 0
+            F = ida_kernwin.Form
+            F.__init__(
+                self,
+                r"""BUTTON YES* Ok
+                        Dump Memory
+
+                        {FormChangeCb}
+                        <Start Address    :{start_addr}>
+                        <End Address      :{end_addr}>
+                        <Filepath         :{filepath}>
+                        """,
+                {
+                    "FormChangeCb": F.FormChangeCb(self.OnFormChange),
+                    "start_addr": F.StringInput(),
+                    "end_addr": F.StringInput(),
+                    "filepath": F.StringInput(),
+                },
+            )
+
+        def OnFormChange(self, fid):
+            return 1
