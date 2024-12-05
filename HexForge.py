@@ -118,17 +118,29 @@ def inject_actions(form, popup, form_type) -> int:
             # Exclude byte searches in decompiler
             if form_type == idaapi.BWN_PSEUDOCODE and isinstance(module, SearchVirustotalBytes):
                 continue
-
+            
             # Exclude string searches in disassembler
-            if form_type == idaapi.BWN_DISASMS and isinstance(module, (SearchGoogle, SearchGrepApp,SearchGitHub,SearchVirustotalString)):
-                continue
-            idaapi.attach_action_to_popup(
-                form,
-                popup,
-                module.ACTION_NAME,
-                SEARCH_MODULE_PATH,
-                idaapi.SETMENU_APP,
-            )
+            if is_ida_9_or_later:
+                if form_type == idaapi.BWN_DISASM and isinstance(module, (SearchGoogle, SearchGrepApp,SearchGitHub,SearchVirustotalString)):
+                    continue
+                idaapi.attach_action_to_popup(
+                    form,
+                    popup,
+                    module.ACTION_NAME,
+                    SEARCH_MODULE_PATH,
+                    idaapi.SETMENU_APP,
+                )
+
+            else:
+                if form_type == idaapi.BWN_DISASMS and isinstance(module, (SearchGoogle, SearchGrepApp,SearchGitHub,SearchVirustotalString)):
+                    continue
+                idaapi.attach_action_to_popup(
+                    form,
+                    popup,
+                    module.ACTION_NAME,
+                    SEARCH_MODULE_PATH,
+                    idaapi.SETMENU_APP,
+                )
 
     return 0
 
