@@ -1,6 +1,7 @@
 import idaapi
 import idc
-
+import ida_hexrays
+import ida_kernwin
 # IDA python functions
 
 
@@ -34,6 +35,20 @@ def write_bytes_to_selected(data) -> None:
         for i, x in enumerate(data):
             idaapi.patch_byte(start + i, x)
 
+def get_highlighted_string_from_decompiler() -> str:
+    """
+    Get the highlighted string from the decompiler view in IDA Pro.
+
+    :return: The highlighted string or an empty string if no text is highlighted.
+    """
+    widget = ida_kernwin.get_current_widget()
+    if widget and ida_kernwin.get_widget_type(widget) == ida_kernwin.BWN_PSEUDOCODE:
+        vu = ida_hexrays.get_widget_vdui(widget)
+        if vu:
+            highlighted_text = ida_kernwin.get_highlight(vu.ct)
+            if highlighted_text:
+                return highlighted_text[0]
+    return ""
 
 # Template class for modules
 class ModuleTemplate:
