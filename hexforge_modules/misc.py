@@ -1,5 +1,6 @@
 import ida_kernwin
 import idaapi
+import idc
 import binascii
 import re
 
@@ -11,8 +12,8 @@ REGEX_HEX = re.compile(r"[^0-9a-fA-F]")
 class PatchMemory(helper.ModuleTemplate):
     def __init__(self):
         self.ACTION_NAME = "hexforge::patch_memory"
-        self.ACTION_TEXT = "patch_memory"
-        self.ACTION_TOOLTIP = "patch_memory"
+        self.ACTION_TEXT = "patch memory"
+        self.ACTION_TOOLTIP = "patch memory"
 
     # function to execute
     def _action(self) -> None:
@@ -70,8 +71,8 @@ class PatchMemory(helper.ModuleTemplate):
 class NopMemory(helper.ModuleTemplate):
     def __init__(self):
         self.ACTION_NAME = "hexforge::nop_memory"
-        self.ACTION_TEXT = "nop_memory"
-        self.ACTION_TOOLTIP = "nop_memory"
+        self.ACTION_TEXT = "nop memory"
+        self.ACTION_TOOLTIP = "nop memory"
 
     def _action(self) -> None:
         self._nop_selected_bytes()
@@ -93,8 +94,8 @@ class NopMemory(helper.ModuleTemplate):
 class CopyMemory(helper.ModuleTemplate):
     def __init__(self):
         self.ACTION_NAME = "hexforge::copy_memory"
-        self.ACTION_TEXT = "copy_memory"
-        self.ACTION_TOOLTIP = "copy_memory"
+        self.ACTION_TEXT = "copy memory"
+        self.ACTION_TOOLTIP = "copy memory"
 
     def _action(self) -> None:
         from PyQt5.Qt import QApplication
@@ -106,11 +107,12 @@ class CopyMemory(helper.ModuleTemplate):
             print(e)
             return None
 
+
 class DumpMemory(helper.ModuleTemplate):
     def __init__(self):
         self.ACTION_NAME = "hexforge::dump_memory"
-        self.ACTION_TEXT = "dump_memory"
-        self.ACTION_TOOLTIP = "dump_memory"
+        self.ACTION_TEXT = "dump memory"
+        self.ACTION_TOOLTIP = "dump memory"
 
     # function to execute
     def _action(self) -> None:
@@ -138,7 +140,7 @@ class DumpMemory(helper.ModuleTemplate):
         size = end_addr - start_addr
         data = idaapi.get_bytes(start_addr, size)
         if data:
-            with open(filepath, 'wb') as f:
+            with open(filepath, "wb") as f:
                 f.write(data)
             print(f"Memory dumped to {filepath}")
         else:
@@ -168,3 +170,82 @@ class DumpMemory(helper.ModuleTemplate):
 
         def OnFormChange(self, fid):
             return 1
+
+
+class GetRVA(helper.ModuleTemplate):
+    def __init__(self):
+        self.ACTION_NAME = "hexforge::get_RVA"
+        self.ACTION_TEXT = "get RVA"
+        self.ACTION_TOOLTIP = "get RVA"
+
+    def _action(self) -> None:
+        from PyQt5.Qt import QApplication
+
+        image_base = idaapi.get_imagebase()
+        current_addr = idc.get_screen_ea()
+
+        if current_addr != idc.BADADDR:
+            rva = current_addr - image_base
+            print(f"Image Base: 0x{image_base:X}")
+            print(f"Current Address: 0x{current_addr:X}")
+            print(f"RVA: 0x{rva:X}")
+
+            try:
+                QApplication.clipboard().setText(f"0x{rva:X}")
+            except (binascii.Error, UnicodeDecodeError) as e:
+                print(e)
+                return None
+        else:
+            print("No valid address selected!")
+
+
+class GetCurrentAddress(helper.ModuleTemplate):
+    def __init__(self):
+        self.ACTION_NAME = "hexforge::get_current_address"
+        self.ACTION_TEXT = "get current address"
+        self.ACTION_TOOLTIP = "get current address"
+
+    def _action(self) -> None:
+        from PyQt5.Qt import QApplication
+
+        image_base = idaapi.get_imagebase()
+        current_addr = idc.get_screen_ea()
+
+        if current_addr != idc.BADADDR:
+            print(f"Image Base: 0x{image_base:X}")
+            print(f"Current Address: 0x{current_addr:X}")
+
+            try:
+                QApplication.clipboard().setText(f"0x{current_addr:X}")
+            except (binascii.Error, UnicodeDecodeError) as e:
+                print(e)
+                return None
+        else:
+            print("No valid address selected!")
+
+
+class GetFileOffset(helper.ModuleTemplate):
+    def __init__(self):
+        self.ACTION_NAME = "hexforge::get_file_offset"
+        self.ACTION_TEXT = "get file offset address"
+        self.ACTION_TOOLTIP = "get file offset address"
+
+    def _action(self) -> None:
+        from PyQt5.Qt import QApplication
+
+        current_ea = idc.get_screen_ea()
+
+        # Map the VA to the corresponding file offset
+        file_offset = idaapi.get_fileregion_offset(current_ea)
+
+        if file_offset != -1:
+            print(f"Current Address: 0x{current_ea:X}")
+            print(f"File Offset: 0x{file_offset:X}")
+
+            try:
+                QApplication.clipboard().setText(f"0x{file_offset:X}")
+            except (binascii.Error, UnicodeDecodeError) as e:
+                print(e)
+                return None
+        else:
+            print("Failed to compute file offset.")
