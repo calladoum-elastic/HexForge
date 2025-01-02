@@ -20,16 +20,13 @@ class Base64Decode(helper.ModuleTemplate):
 
     def _show(self):
         f = self.InputFormT()
-        f, args = f.Compile()
+        f, _ = f.Compile()
         # Show form
-        ok = f.Execute()
-        if ok == 1:
-            alphabet = f.alphabet.value
-            f.Free()
-            return alphabet
-        else:
-            f.Free()
-            return None
+        f.Execute()
+        alphabet = f.alphabet.value
+        f.Free()
+        return alphabet
+
 
     class InputFormT(ida_kernwin.Form):
         def __init__(self):

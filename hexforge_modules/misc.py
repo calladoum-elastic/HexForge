@@ -22,25 +22,21 @@ class PatchMemory(helper.ModuleTemplate):
 
     def _show(self):
         f = self.InputFormT()
-        f, args = f.Compile()
+        f, _ = f.Compile()
         # Show form
-        ok = f.Execute()
-        if ok == 1:
+        f.Execute()
+        data = None
+        try:
             data_input = f.hex_data.value
-            try:
-                if f.Data_UTF8.checked:  # ascii data
-                    data = data_input.encode()
-                else:  # hex data
-                    data = binascii.unhexlify(re.sub(REGEX_HEX, "", data_input))
-            except binascii.Error as e:
-                print(e)
-                data = None
-            f.Free()
-            return data
+            if f.Data_UTF8.checked:  # ascii data
+                data = data_input.encode()
+            else:  # hex data
+                data = binascii.unhexlify(re.sub(REGEX_HEX, "", data_input))
+        except binascii.Error as e:
+            print(e)
+        f.Free()
+        return data
 
-        else:
-            f.Free()
-            return None
 
     class InputFormT(ida_kernwin.Form):
         def __init__(self):
@@ -123,18 +119,20 @@ class DumpMemory(helper.ModuleTemplate):
 
     def _show(self):
         f = self.InputFormT()
-        f, args = f.Compile()
+        f, _ = f.Compile()
         # Show form
-        ok = f.Execute()
-        if ok == 1:
+        f.Execute()
+        start_addr = None
+        end_addr = None
+        filepath = None
+        try:
             start_addr = int(f.start_addr.value, 16)
             end_addr = int(f.end_addr.value, 16)
             filepath = f.filepath.value
-            f.Free()
-            return start_addr, end_addr, filepath
-        else:
-            f.Free()
-            return None
+        except ValueError as e:
+            print(e)
+        f.Free()
+        return start_addr, end_addr, filepath
 
     def dump_memory_to_file(self, start_addr, end_addr, filepath):
         size = end_addr - start_addr

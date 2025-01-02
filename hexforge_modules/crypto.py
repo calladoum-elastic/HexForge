@@ -28,35 +28,32 @@ class ChaCha20(helper.ModuleTemplate):
 
     def _show(self):
         f = self.InputFormT()
-        f, args = f.Compile()
+        f, _ = f.Compile()
         # Show form
-        ok = f.Execute()
-        if ok == 1:
-            try:
-                chacha20_key_input = f.chacha20_key.value
-                chacha20_nonce_input = f.chacha20_nonce.value
-                if f.Chacha20Key_UTF8.checked:  # ascii data
-                    chacha20_key_input = chacha20_key_input.encode()
-                else:  # hex data
-                    chacha20_key_input = binascii.unhexlify(
-                        re.sub(REGEX_HEX, "", chacha20_key_input)
-                    )
+        f.Execute()
+        chacha20_key_input = None
+        chacha20_nonce_input = None
+        try:
+            chacha20_key_input = f.chacha20_key.value
+            chacha20_nonce_input = f.chacha20_nonce.value
+            if f.Chacha20Key_UTF8.checked:  # ascii data
+                chacha20_key_input = chacha20_key_input.encode()
+            else:  # hex data
+                chacha20_key_input = binascii.unhexlify(
+                    re.sub(REGEX_HEX, "", chacha20_key_input)
+                )
 
-                if f.Chacha20Key_UTF8.checked:  # ascii data
-                    chacha20_nonce_input = chacha20_nonce_input.encode()
-                else:  # hex data
-                    chacha20_nonce_input = binascii.unhexlify(
-                        re.sub(REGEX_HEX, "", chacha20_nonce_input)
-                    )
-            except binascii.Error as e:
-                print(e)
-                chacha20_key_input = None
-                chacha20_nonce_input = None
-            f.Free()
-            return chacha20_key_input, chacha20_nonce_input
-        else:
-            f.Free()
-            return None
+            if f.Chacha20Key_UTF8.checked:  # ascii data
+                chacha20_nonce_input = chacha20_nonce_input.encode()
+            else:  # hex data
+                chacha20_nonce_input = binascii.unhexlify(
+                    re.sub(REGEX_HEX, "", chacha20_nonce_input)
+                )
+        except binascii.Error as e:
+            print(e)
+        f.Free()
+        return chacha20_key_input, chacha20_nonce_input
+
 
     class InputFormT(ida_kernwin.Form):
         def __init__(self):
@@ -113,34 +110,31 @@ class Aes(helper.ModuleTemplate):
 
     def _show(self, aes_mods_list):
         f = self.InputFormT(aes_mods_list)
-        f, args = f.Compile()
+        f, _ = f.Compile()
         # Show form
-        ok = f.Execute()
-        if ok == 1:
-            try:
-                aes_key_input = f.aes_key.value
-                aes_iv_input = f.aes_iv.value
+        f.Execute()
+        aes_key = None
+        aes_iv = None
+        mod_chooser = None
+        try:
+            aes_key_input = f.aes_key.value
+            aes_iv_input = f.aes_iv.value
 
-                if f.AesKey_UTF8.checked:  # ascii data
-                    aes_key = aes_key_input.encode()
-                else:  # hex data
-                    aes_key = binascii.unhexlify(re.sub(REGEX_HEX, "", aes_key_input))
+            if f.AesKey_UTF8.checked:  # ascii data
+                aes_key = aes_key_input.encode()
+            else:  # hex data
+                aes_key = binascii.unhexlify(re.sub(REGEX_HEX, "", aes_key_input))
 
-                if f.AesIv_UTF8.checked:  # ascii data
-                    aes_iv = aes_iv_input.encode()
-                else:  # hex data
-                    aes_iv = binascii.unhexlify(re.sub(REGEX_HEX, "", aes_iv_input))
-            except binascii.Error as e:
-                print(e)
-                aes_key = None
-                aes_iv = None
+            if f.AesIv_UTF8.checked:  # ascii data
+                aes_iv = aes_iv_input.encode()
+            else:  # hex data
+                aes_iv = binascii.unhexlify(re.sub(REGEX_HEX, "", aes_iv_input))
             mod_chooser = f.cModChooser[f.cModChooser.value]
-
-            f.Free()
-            return aes_key, aes_iv, mod_chooser
-        else:
-            f.Free()
-            return None
+        except binascii.Error as e:
+            print(e)
+        
+        f.Free()
+        return aes_key, aes_iv, mod_chooser
 
     class InputFormT(ida_kernwin.Form):
         class mod_chooser_t(ida_kernwin.Choose):
@@ -217,24 +211,21 @@ class Xor(helper.ModuleTemplate):
 
     def _show(self):
         f = self.InputFormT()
-        f, args = f.Compile()
+        f, _ = f.Compile()
         # Show form
-        ok = f.Execute()
-        if ok == 1:
-            try:
-                xor_key_input = f.xor_key.value
-                if f.XorKey_UTF8.checked:  # ascii data
-                    xor_key = xor_key_input.encode()
-                else:  # hex data
-                    xor_key = binascii.unhexlify(re.sub(REGEX_HEX, "", xor_key_input))
-            except binascii.Error as e:
-                print(e)
-                xor_key = None
-            f.Free()
-            return xor_key
-        else:
-            f.Free()
-            return None
+        f.Execute()
+        xor_key = None
+        try:
+            xor_key_input = f.xor_key.value
+            if f.XorKey_UTF8.checked:  # ascii data
+                xor_key = xor_key_input.encode()
+            else:  # hex data
+                xor_key = binascii.unhexlify(re.sub(REGEX_HEX, "", xor_key_input))
+        except binascii.Error as e:
+            print(e)
+        f.Free()
+        return xor_key
+
 
     class InputFormT(ida_kernwin.Form):
         def __init__(self):
@@ -277,24 +268,21 @@ class Rc4((helper.ModuleTemplate)):
 
     def _show(self):
         f = self.InputFormT()
-        f, args = f.Compile()
+        f, _ = f.Compile()
         # Show form
-        ok = f.Execute()
-        if ok == 1:
-            try:
-                rc4_key_input = f.rc4_key.value
-                if f.Rc4Key_UTF8.checked:  # ascii data
-                    rc4_key = rc4_key_input.encode()
-                else:  # hex data
-                    rc4_key = binascii.unhexlify(re.sub(REGEX_HEX, "", rc4_key_input))
-            except binascii.Error as e:
-                print(e)
-                rc4_key = None
-            f.Free()
-            return rc4_key
-        else:
-            f.Free()
-            return None
+        f.Execute()
+        rc4_key = None
+        try:
+            rc4_key_input = f.rc4_key.value
+            if f.Rc4Key_UTF8.checked:  # ascii data
+                rc4_key = rc4_key_input.encode()
+            else:  # hex data
+                rc4_key = binascii.unhexlify(re.sub(REGEX_HEX, "", rc4_key_input))
+        except binascii.Error as e:
+            print(e)
+            
+        f.Free()
+        return rc4_key
 
     class InputFormT(ida_kernwin.Form):
         def __init__(self):
