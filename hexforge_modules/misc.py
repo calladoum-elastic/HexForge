@@ -247,3 +247,54 @@ class GetFileOffset(helper.ModuleTemplate):
                 return None
         else:
             print("Failed to compute file offset.")
+
+
+class SetMemory(helper.ModuleTemplate):
+    def __init__(self):
+        self.ACTION_NAME = "hexforge::set_memory"
+        self.ACTION_TEXT = "set memory"
+        self.ACTION_TOOLTIP = "set memory"
+
+    # function to execute
+    def _action(self) -> None:
+        value = self._show()
+        data = helper.get_selected_bytes()
+        val_data = bytearray(len(data))
+        val_data[:] = value * len(data)
+        helper.write_bytes_to_selected(val_data)
+
+    def _show(self):
+        f = self.InputFormT()
+        f, _ = f.Compile()
+        # Show form
+        f.Execute()
+        value = None
+        try:
+            value_input = f.Value.value
+            value = binascii.unhexlify(re.sub(REGEX_HEX, "", value_input))
+        except binascii.Error as e:
+            print(e)
+        f.Free()
+        return value
+
+
+    class InputFormT(ida_kernwin.Form):
+        def __init__(self):
+            self.__n = 0
+            F = ida_kernwin.Form
+            F.__init__(
+                self,
+                r"""BUTTON YES* Ok
+                        Set memory Settings
+
+                        {FormChangeCb}
+                        <##1-byte value :{Value}>
+                        """,
+                {
+                    "FormChangeCb": F.FormChangeCb(self.OnFormChange),
+                    "Value": F.StringInput(),
+                },
+            )
+
+        def OnFormChange(self, fid):
+            return 1
